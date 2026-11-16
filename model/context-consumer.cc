@@ -70,10 +70,6 @@ ContextConsumer::GetTypeId()
                           UintegerValue(1),
                           MakeUintegerAccessor(&ContextConsumer::m_applicationType),
                           MakeUintegerChecker<uint32_t>())
-            .AddTraceSource("Tx",
-                            "A new packet is created and is sent",
-                            MakeTraceSourceAccessor(&ContextConsumer::m_txTrace),
-                            "ns3::Packet::TracedCallback")
             .AddTraceSource("Rx",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&ContextConsumer::m_rxTrace),
@@ -90,7 +86,8 @@ ContextConsumer::GetTypeId()
 }
 
 ContextConsumer::ContextConsumer()
-    : m_sent{0},
+    : SourceApplication(false),
+      m_sent{0},
       m_socket{nullptr},
       m_peerPort{},
       m_sendEvent{},
@@ -186,7 +183,7 @@ ContextConsumer::GetPort() const
 }
 
 void
-ContextConsumer::StartApplication()
+ContextConsumer::DoStartApplication()
 {
     NS_LOG_INFO("[App.Cli] Inicia Aplicação tipo: " << m_applicationType);
     NS_LOG_FUNCTION(this);
@@ -244,7 +241,7 @@ ContextConsumer::StartApplication()
 }
 
 void
-ContextConsumer::StopApplication()
+ContextConsumer::CancelEvents()
 {
     NS_LOG_FUNCTION(this);
 

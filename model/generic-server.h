@@ -48,8 +48,8 @@ class GenericServer : public SinkApplication
     ~GenericServer() override;
 
   private:
-    void StartApplication() override;
-    void StopApplication() override;
+    void DoStartApplication() override;
+    void DoStopApplication() override;
 
     /**
      * @brief Handle a packet reception.

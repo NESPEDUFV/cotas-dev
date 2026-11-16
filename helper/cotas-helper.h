@@ -24,6 +24,9 @@ namespace ns3
 class CoTaSHelper : public ApplicationHelper
 {
   public:
+
+    CoTaSHelper();
+
     /**
      * Create CoTaSHelper which will make life easier for people trying
      * to set up simulations with echos.
@@ -44,6 +47,8 @@ class CoTaSHelper : public ApplicationHelper
 class GenericServerHelper : public ApplicationHelper
 {
   public:
+
+    GenericServerHelper();
     /**
      * Create GenericServerHelper which will make life easier for people trying
      * to set up simulations with echos.
@@ -68,6 +73,8 @@ class GenericServerHelper : public ApplicationHelper
 class ContextProviderHelper : public ApplicationHelper
 {
   public:
+
+    ContextProviderHelper();
     /**
      * Create ContextProviderHelper which will make life easier for people trying
      * to set up simulations with echos. Use this variant with addresses that do
@@ -96,6 +103,8 @@ class ContextProviderHelper : public ApplicationHelper
 class ContextConsumerHelper : public ApplicationHelper
 {
   public:
+
+    ContextConsumerHelper();
     /**
      * Create ContextConsumerHelper which will make life easier for people trying
      * to set up simulations with echos. Use this variant with addresses that do
@@ -116,7 +125,6 @@ class ContextConsumerHelper : public ApplicationHelper
     ContextConsumerHelper(const Address& addr);
 
 };
-
 
 } // namespace ns3
 

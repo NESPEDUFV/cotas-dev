@@ -69,10 +69,6 @@ ContextProvider::GetTypeId()
                           UintegerValue(1),
                           MakeUintegerAccessor(&ContextProvider::m_objectType),
                           MakeUintegerChecker<uint32_t>())
-            .AddTraceSource("Tx",
-                            "A new packet is created and is sent",
-                            MakeTraceSourceAccessor(&ContextProvider::m_txTrace),
-                            "ns3::Packet::TracedCallback")
             .AddTraceSource("Rx",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&ContextProvider::m_rxTrace),
@@ -89,7 +85,8 @@ ContextProvider::GetTypeId()
 }
 
 ContextProvider::ContextProvider()
-    : m_sent{0},
+    : SourceApplication(false),
+      m_sent{0},
       m_socket{nullptr},
       m_peerPort{},
       m_sendEvent{},
@@ -182,7 +179,7 @@ ContextProvider::GetPort() const
 }
 
 void
-ContextProvider::StartApplication()
+ContextProvider::DoStartApplication()
 {
     NS_LOG_INFO("[S.O.Cli] Inicia cliente do objeto inteligente");
     NS_LOG_FUNCTION(this);
@@ -241,7 +238,7 @@ ContextProvider::StartApplication()
 }
 
 void
-ContextProvider::StopApplication()
+ContextProvider::CancelEvents()
 {
     NS_LOG_FUNCTION(this);
 

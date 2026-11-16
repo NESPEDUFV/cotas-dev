@@ -71,7 +71,7 @@ GenericApplication::~GenericApplication()
 }
 
 void
-GenericApplication::StartApplication()
+GenericApplication::DoStartApplication()
 {
     NS_LOG_FUNCTION(this);
 
@@ -134,7 +134,7 @@ GenericApplication::StartApplication()
 }
 
 void
-GenericApplication::StopApplication()
+GenericApplication::DoStopApplication()
 {
     NS_LOG_FUNCTION(this);
 

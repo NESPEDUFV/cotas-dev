@@ -4,14 +4,17 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#ifndef GENERIC_APP_H
-#define GENERIC_APP_H
+#ifndef BROADCAST_PROVIDER_H
+#define BROADCAST_PROVIDER_H
 
 #include "sink-application.h"
 
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/traced-callback.h"
+#include "json.hpp"
+#include "encapsulated-coap.h"
+#include <algorithm>
 
 namespace ns3
 {
@@ -21,19 +24,20 @@ class Packet;
 
 /**
  * @ingroup applications
- * @defgroup udpecho UdpEcho
+ * @defgroup cotas cotas
  */
 
 /**
- * @ingroup udpecho
- * @brief A Udp Echo server
+ * @ingroup cotas
+ * @brief A Generic Data Server
  *
- * Every packet received is sent back.
+ * If an Client send messages to the specific interface
+ * it'll response with the message in HandleRead.
  */
-class GenericApplication : public SinkApplication
+class BroadcastProvider : public SinkApplication
 {
   public:
-    static constexpr uint16_t DEFAULT_PORT{9}; //!< default port
+    static constexpr uint16_t DEFAULT_PORT{19}; //!< default port
 
     /**
      * @brief Get the type ID.
@@ -41,12 +45,12 @@ class GenericApplication : public SinkApplication
      */
     static TypeId GetTypeId();
 
-    GenericApplication();
-    ~GenericApplication() override;
+    BroadcastProvider();
+    ~BroadcastProvider() override;
 
   private:
-    void StartApplication() override;
-    void StopApplication() override;
+    void DoStartApplication() override;
+    void DoStopApplication() override;
 
     /**
      * @brief Handle a packet reception.
@@ -56,6 +60,16 @@ class GenericApplication : public SinkApplication
      * @param socket the socket the packet was received to.
      */
     void HandleRead(Ptr<Socket> socket);
+
+    void SetDataMessage();
+
+    int RandomInt(int min, int max);
+
+    std::string RandomData();
+
+    uint32_t m_objectType;
+
+    nlohmann::json m_updateData;
 
     uint8_t m_tos;         //!< The packets Type of Service
     Ptr<Socket> m_socket;  //!< Socket
@@ -67,10 +81,10 @@ class GenericApplication : public SinkApplication
     /// Callbacks for tracing the packet Rx events, includes source and destination addresses
     TracedCallback<Ptr<const Packet>, const Address&, const Address&> m_rxTraceWithAddresses;
 
-    uint8_t m_recived_messages;
-    uint8_t m_send_messages;
+    uint32_t m_recived_messages;
+    uint32_t m_send_messages;
 };
 
 } // namespace ns3
 
-#endif /* GENERIC_APP_H */
+#endif /* BROADCAST_PROVIDER*/

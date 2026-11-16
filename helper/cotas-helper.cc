@@ -18,28 +18,49 @@
 namespace ns3
 {
 
-CoTaSHelper::CoTaSHelper(uint16_t port)
+CoTaSHelper::CoTaSHelper()
     : ApplicationHelper(CoTaS::GetTypeId())
+{
+}
+
+CoTaSHelper::CoTaSHelper(uint16_t port)
+    : CoTaSHelper()
 {
     SetAttribute("Port", UintegerValue(port));
 }
 
 CoTaSHelper::CoTaSHelper(const Address& address)
-    : ApplicationHelper(CoTaS::GetTypeId())
+    : CoTaSHelper()
 {
     SetAttribute("Local", AddressValue(address));
 }
 
+GenericServerHelper::GenericServerHelper()
+    : ApplicationHelper(CoTaS::GetTypeId())
+{
+}
+
 GenericServerHelper::GenericServerHelper(uint16_t port)
-    : ApplicationHelper(GenericServer::GetTypeId())
+    : GenericServerHelper()
 {
     SetAttribute("Port", UintegerValue(port));
 }
 
 GenericServerHelper::GenericServerHelper(const Address& address)
-    : ApplicationHelper(GenericServer::GetTypeId())
+    : GenericServerHelper()
 {
     SetAttribute("Local", AddressValue(address));
+}
+
+ContextProviderHelper::ContextProviderHelper()
+    : ApplicationHelper(ContextProvider::GetTypeId())
+{
+}
+
+ContextProviderHelper::ContextProviderHelper(const Address& address)
+    : ContextProviderHelper()
+{
+    SetAttribute("Remote", AddressValue(address));
 }
 
 ContextProviderHelper::ContextProviderHelper(const Address& address, uint16_t port)
@@ -47,8 +68,13 @@ ContextProviderHelper::ContextProviderHelper(const Address& address, uint16_t po
 {
 }
 
-ContextProviderHelper::ContextProviderHelper(const Address& address)
-    : ApplicationHelper(ContextProvider::GetTypeId())
+ContextConsumerHelper::ContextConsumerHelper()
+    : ApplicationHelper(ContextConsumer::GetTypeId())
+{
+}
+
+ContextConsumerHelper::ContextConsumerHelper(const Address& address)
+    : ContextConsumerHelper()
 {
     SetAttribute("Remote", AddressValue(address));
 }
@@ -57,13 +83,5 @@ ContextConsumerHelper::ContextConsumerHelper(const Address& address, uint16_t po
     : ContextConsumerHelper(addressUtils::ConvertToSocketAddress(address, port))
 {
 }
-
-ContextConsumerHelper::ContextConsumerHelper(const Address& address)
-    : ApplicationHelper(ContextConsumer::GetTypeId())
-{
-    SetAttribute("Remote", AddressValue(address));
-}
-
-
 
 } // namespace ns3

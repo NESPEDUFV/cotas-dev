@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#include "broadcast-provider.h"
+#include "generic-server.h"
 
 #include "ns3/address-utils.h"
 #include "ns3/inet-socket-address.h"
@@ -29,41 +29,41 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE("BroadcastProviderApplication");
+NS_LOG_COMPONENT_DEFINE("GenericServerApplication");
 
-NS_OBJECT_ENSURE_REGISTERED(BroadcastProvider);
+NS_OBJECT_ENSURE_REGISTERED(GenericServer);
 
 TypeId
-BroadcastProvider::GetTypeId()
+GenericServer::GetTypeId()
 {
     static TypeId tid =
-        TypeId("ns3::BroadcastProvider")
+        TypeId("ns3::GenericServer")
             .SetParent<SinkApplication>()
             .SetGroupName("Applications")
-            .AddConstructor<BroadcastProvider>()
+            .AddConstructor<GenericServer>()
             .AddAttribute("Tos",
                           "The Type of Service used to send IPv4 packets. "
                           "All 8 bits of the TOS byte are set (including ECN bits).",
                           UintegerValue(0),
-                          MakeUintegerAccessor(&BroadcastProvider::m_tos),
+                          MakeUintegerAccessor(&GenericServer::m_tos),
                           MakeUintegerChecker<uint8_t>())
             .AddAttribute("ObjectType",
                           "Which object the node refers to",
                           UintegerValue(1),
-                          MakeUintegerAccessor(&BroadcastProvider::m_objectType),
+                          MakeUintegerAccessor(&GenericServer::m_objectType),
                           MakeUintegerChecker<uint32_t>())
             .AddTraceSource("Rx",
                             "A packet has been received",
-                            MakeTraceSourceAccessor(&BroadcastProvider::m_rxTrace),
+                            MakeTraceSourceAccessor(&GenericServer::m_rxTrace),
                             "ns3::Packet::TracedCallback")
             .AddTraceSource("RxWithAddresses",
                             "A packet has been received",
-                            MakeTraceSourceAccessor(&BroadcastProvider::m_rxTraceWithAddresses),
+                            MakeTraceSourceAccessor(&GenericServer::m_rxTraceWithAddresses),
                             "ns3::Packet::TwoAddressTracedCallback");
     return tid;
 }
 
-BroadcastProvider::BroadcastProvider()
+GenericServer::GenericServer()
     : SinkApplication(DEFAULT_PORT),
       m_socket{nullptr},
       m_socket6{nullptr},
@@ -73,7 +73,7 @@ BroadcastProvider::BroadcastProvider()
     NS_LOG_FUNCTION(this);
 }
 
-BroadcastProvider::~BroadcastProvider()
+GenericServer::~GenericServer()
 {
     NS_LOG_FUNCTION(this);
     m_socket = nullptr;
@@ -84,11 +84,11 @@ BroadcastProvider::~BroadcastProvider()
 }
 
 void
-BroadcastProvider::StartApplication()
+GenericServer::DoStartApplication()
 {
     NS_LOG_FUNCTION(this);
 
-    NS_LOG_INFO("[S.O.Srv] Inicia server objeto de tipo: " << m_objectType);
+    NS_LOG_INFO("[S.O.Srv] Inicia aplicação de tipo: " << m_objectType);
 
     SetDataMessage();
 
@@ -119,7 +119,7 @@ BroadcastProvider::StartApplication()
             }
         }
         m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
-        m_socket->SetRecvCallback(MakeCallback(&BroadcastProvider::HandleRead, this));
+        m_socket->SetRecvCallback(MakeCallback(&GenericServer::HandleRead, this));
     }
 
     if (m_local.IsInvalid() && !m_socket6)
@@ -146,14 +146,14 @@ BroadcastProvider::StartApplication()
                 NS_FATAL_ERROR("Error: Failed to join multicast group");
             }
         }
-        m_socket6->SetRecvCallback(MakeCallback(&BroadcastProvider::HandleRead, this));
+        m_socket6->SetRecvCallback(MakeCallback(&GenericServer::HandleRead, this));
     }
 
     coap_startup();
 }
 
 void
-BroadcastProvider::StopApplication()
+GenericServer::DoStopApplication()
 {
     NS_LOG_FUNCTION(this);
 
@@ -173,11 +173,13 @@ BroadcastProvider::StopApplication()
 }
 
 void
-BroadcastProvider::HandleRead(Ptr<Socket> socket)
+GenericServer::HandleRead(Ptr<Socket> socket)
 {
     // NS_LOG_INFO("[S.O.Srv] Chegou requisição no objeto inteligente " << m_objectType);
     NS_LOG_FUNCTION(this << socket);
     Address from;
+
+    m_recived_messages++;
 
     while (auto packet = socket->RecvFrom(from))
     {
@@ -213,33 +215,27 @@ BroadcastProvider::HandleRead(Ptr<Socket> socket)
                 abort();
             }
 
-            data = GetPduPayloadJson(pdu);
+            data = GetPduPayloadString(pdu);
+            //* acaba aqui
 
-            auto it = std::find(data.begin(), data.end(), m_objectType);
+            response_data = RandomData();
+            res = {{"status", COAP_RESPONSE_CODE_CONTENT}, {"response", response_data}};
 
-            if(it != data.end()){ // verifica se o objeto é um que a aplicação precisa
-                m_recived_messages++;
-                response_data = RandomData();
-                res = {{"status", COAP_RESPONSE_CODE_CONTENT}, {"response", response_data}};
-
-                data_pdu = EncodePduResponse(res["status"], res.dump());
+            data_pdu = EncodePduResponse(res["status"], res.dump());
 
 
-                response = Create<Packet>(data_pdu.buffer, data_pdu.size);
-                
-                if(packet->PeekPacketTag(timestampTag))
-                {
-                    response->AddPacketTag(timestampTag);
-                }
-                
-                // NS_LOG_INFO("[S.O.Srv] Enviando resposta do objeto inteligente");
-                socket->SendTo(response, 0, from);
-                m_send_messages++;
-                
-                delete[] raw_data;
+            response = Create<Packet>(data_pdu.buffer, data_pdu.size);
+            
+            if(packet->PeekPacketTag(timestampTag))
+            {
+                response->AddPacketTag(timestampTag);
             }
-
-            //* acaba aqui   
+            
+            // NS_LOG_INFO("[S.O.Srv] Enviando resposta do objeto inteligente");
+            socket->SendTo(response, 0, from);
+            m_send_messages++;
+            
+            delete[] raw_data;
         }
         // trata no ipv6
         else if (Inet6SocketAddress::IsMatchingType(from))
@@ -253,7 +249,7 @@ BroadcastProvider::HandleRead(Ptr<Socket> socket)
 }
 
 int
-BroadcastProvider::RandomInt(int min, int max)
+GenericServer::RandomInt(int min, int max)
 {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -264,14 +260,14 @@ BroadcastProvider::RandomInt(int min, int max)
 }
 
 std::string
-BroadcastProvider::RandomData()
+GenericServer::RandomData()
 {   
     nlohmann::json data = m_updateData[RandomInt(0, 3)];
     // add dados que variam com ns3 (localização, bateria...)
     return data.dump();
 }
 void 
-BroadcastProvider::SetDataMessage(){
+GenericServer::SetDataMessage(){
 
     std::ifstream fm("all_data/messages2.json");
 

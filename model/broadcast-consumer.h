@@ -66,8 +66,8 @@ class BroadcastConsumer : public SourceApplication
     void SetRemote(const Address& addr) override;
 
   protected:
-    void StartApplication() override;
-    void StopApplication() override;
+    void DoStartApplication() override;
+    void CancelEvents() override;
 
     /**
      * @brief Set the remote port (temporary function until deprecated attributes are removed)
@@ -125,9 +125,6 @@ class BroadcastConsumer : public SourceApplication
     nlohmann::json m_reqData;
     nlohmann::json m_firstData;
     nlohmann::json m_messages;
-    
-    /// Callbacks for tracing the packet Tx events
-    TracedCallback<Ptr<const Packet>> m_txTrace;
 
     /// Callbacks for tracing the packet Rx events
     TracedCallback<Ptr<const Packet>> m_rxTrace;

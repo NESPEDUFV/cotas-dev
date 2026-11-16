@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
-#ifndef CONTEXT_CONSUMER_H
-#define CONTEXT_CONSUMER_H
+#ifndef CONTEXT_PROVIDER_H
+#define CONTEXT_PROVIDER_H
 
 #include <coap3/coap.h>
 #ifdef LOG_INFO
@@ -23,27 +23,26 @@
 #include "ns3/ptr.h"
 #include "ns3/traced-callback.h"
 #include "json.hpp"
+#include "encapsulated-coap.h"
+
 #include <optional>
 #include <vector>
 #include <fstream>
-#include "encapsulated-coap.h"
+
 
 namespace ns3
 {
-
 class Socket;
 class Packet;
-enum State{
-  Searching,
-  Find
-};
+#define BUFSIZE 1500
 /**
  * @ingroup udpecho
- * @brief A Context Consumer client
+ * @brief A Context Provider client
  *
  * Every packet sent should be returned by the server and received here.
  */
-class ContextConsumer : public SourceApplication
+
+class ContextProvider : public SourceApplication
 {
   public:
     /**
@@ -52,8 +51,8 @@ class ContextConsumer : public SourceApplication
      */
     static TypeId GetTypeId();
 
-    ContextConsumer();
-    ~ContextConsumer() override;
+    ContextProvider();
+    ~ContextProvider() override;
 
     static constexpr uint16_t DEFAULT_PORT{0}; //!< default port
 
@@ -66,9 +65,12 @@ class ContextConsumer : public SourceApplication
     void SetRemote(const Address& ip, uint16_t port);
     void SetRemote(const Address& addr) override;
 
+    uint32_t GetDataSize() const;
+
   private:
-    void StartApplication() override;
-    void StopApplication() override;
+    void DoStartApplication() override;
+    // void DoStopApplication() override;
+    void CancelEvents() override;
 
     /**
      * @brief Set the remote port (temporary function until deprecated attributes are removed)
@@ -108,8 +110,10 @@ class ContextConsumer : public SourceApplication
     void HandleRead(Ptr<Socket> socket);
 
     void SetDataMessage();
-    void HandleOK(nlohmann::json response);
 
+    std::string RandomData();
+    
+    int RandomInt(int min, int max) ;
 
     uint32_t m_count; //!< Maximum number of packets the application will send
     Time m_interval;  //!< Packet inter-send time
@@ -118,16 +122,11 @@ class ContextConsumer : public SourceApplication
     Ptr<Socket> m_socket;               //!< Socket
     std::optional<uint16_t> m_peerPort; //!< Remote peer port (deprecated) // NS_DEPRECATED_3_44
     EventId m_sendEvent;                //!< Event to send the next packet
-    uint32_t m_applicationType;
-    State m_state;                     //!< State of application (sending messages for cotas|objects)
-    Address m_objectAdress;                //!< Address of the object of interest
+    uint32_t m_objectType;
     uint32_t m_objectId;
-    nlohmann::json m_reqData;
     nlohmann::json m_firstData;
+    nlohmann::json m_updateData;
     nlohmann::json m_messages;
-    
-    /// Callbacks for tracing the packet Tx events
-    TracedCallback<Ptr<const Packet>> m_txTrace;
 
     /// Callbacks for tracing the packet Rx events
     TracedCallback<Ptr<const Packet>> m_rxTrace;
@@ -144,4 +143,4 @@ class ContextConsumer : public SourceApplication
 
 } // namespace ns3
 
-#endif /* CONTEXT_CONSUMER_H */
+#endif /* CONTEXT_PROVIDER_H */

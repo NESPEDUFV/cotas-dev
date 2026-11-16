@@ -78,7 +78,7 @@ CoTaS::~CoTaS()
 }
 
 void
-CoTaS::StartApplication()
+CoTaS::DoStartApplication()
 {
     NS_LOG_INFO("[CoTaS] Inicia CoTaS");
     NS_LOG_FUNCTION(this);
@@ -159,7 +159,7 @@ CoTaS::StartApplication()
 }
 
 void
-CoTaS::StopApplication()
+CoTaS::DoStopApplication()
 {
     NS_LOG_FUNCTION(this);
 
