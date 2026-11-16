@@ -7,7 +7,7 @@
 #ifndef GENERIC_APP_H
 #define GENERIC_APP_H
 
-#include "sink-application.h"
+#include "ns3/sink-application.h"
 
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"

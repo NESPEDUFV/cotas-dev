@@ -15,7 +15,7 @@
 #undef LOG_DEBUG
 #endif
 
-#include "source-application.h"
+#include "ns3/source-application.h"
 
 #include "ns3/deprecated.h"
 #include "ns3/event-id.h"

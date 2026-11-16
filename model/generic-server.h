@@ -7,7 +7,7 @@
 #ifndef GENERIC_SERVER_H
 #define GENERIC_SERVER_H
 
-#include "sink-application.h"
+#include "ns3/sink-application.h"
 
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"

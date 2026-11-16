@@ -39,5 +39,6 @@ build_lib(
     ${COAP_LIB}
     ${libmobility}
     ${libenergy}
+    ${applications}
   TEST_SOURCES
 )
