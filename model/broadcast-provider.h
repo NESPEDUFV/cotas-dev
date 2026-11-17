@@ -51,6 +51,7 @@ class BroadcastProvider : public SinkApplication
   private:
     void DoStartApplication() override;
     void DoStopApplication() override;
+    void CancelEvents() override;
 
     /**
      * @brief Handle a packet reception.

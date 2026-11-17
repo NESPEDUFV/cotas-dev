@@ -68,6 +68,7 @@ class ContextConsumer : public SourceApplication
 
   private:
     void DoStartApplication() override;
+    void DoStopApplication() override;
     void CancelEvents() override;
 
     /**

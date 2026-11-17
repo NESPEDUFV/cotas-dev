@@ -147,16 +147,6 @@ BroadcastProvider::DoStopApplication()
     NS_LOG_INFO("Durante a simulação chegou " << m_recived_messages << " no server do objeto " << m_objectType);
     NS_LOG_INFO("Durante a simulação foram enviadas " << m_send_messages << " do server do objeto " << m_objectType);
 
-    if (m_socket)
-    {
-        m_socket->Close();
-        m_socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
-    }
-    if (m_socket6)
-    {
-        m_socket6->Close();
-        m_socket6->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
-    }
 }
 
 void

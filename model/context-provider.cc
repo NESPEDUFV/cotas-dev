@@ -192,12 +192,19 @@ ContextProvider::DoStartApplication()
 }
 
 void
-ContextProvider::CancelEvents()
+ContextProvider::DoStopApplication()
 {
     NS_LOG_FUNCTION(this);
 
     NS_LOG_INFO("Durante a simulação chegou " << m_recived_messages << " no objeto " << m_objectType);
     NS_LOG_INFO("Durante a simulação foram enviadas " << m_send_messages << " do objeto " << m_objectType);
+
+}
+
+void
+ContextProvider::CancelEvents()
+{
+    NS_LOG_FUNCTION(this);
 
     Simulator::Cancel(m_sendEvent);
 }

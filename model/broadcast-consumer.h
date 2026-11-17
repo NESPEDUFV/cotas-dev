@@ -67,6 +67,7 @@ class BroadcastConsumer : public SourceApplication
 
   protected:
     void DoStartApplication() override;
+    void DoStopApplication() override;
     void CancelEvents() override;
 
     /**

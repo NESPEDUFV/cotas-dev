@@ -198,12 +198,18 @@ BroadcastConsumer::DoStartApplication()
 }
 
 void
-BroadcastConsumer::CancelEvents()
+BroadcastConsumer::DoStopApplication()
 {
     NS_LOG_FUNCTION(this);
 
     NS_LOG_INFO("Durante a simulação chegou " << m_recived_messages << " na aplicação " << m_applicationType);
     NS_LOG_INFO("Durante a simulação foram enviadas " << m_send_messages << " da aplicação " << m_applicationType);
+}
+
+void
+BroadcastConsumer::CancelEvents()
+{
+    NS_LOG_FUNCTION(this);
 
     Simulator::Cancel(m_sendEvent);
 }

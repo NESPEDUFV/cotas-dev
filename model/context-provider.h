@@ -69,7 +69,7 @@ class ContextProvider : public SourceApplication
 
   private:
     void DoStartApplication() override;
-    // void DoStopApplication() override;
+    void DoStopApplication() override;
     void CancelEvents() override;
 
     /**
