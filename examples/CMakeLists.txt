@@ -17,10 +17,8 @@ set(base_examples
     casaInteligente_30
     broadcast_60
     casaInteligente_40
-    teste
     broadcast_70
     casaInteligente_50
-
 )
 
 foreach(
@@ -30,6 +28,16 @@ foreach(
   build_lib_example(
     NAME ${example}
     SOURCE_FILES ${example}.cc
-    LIBRARIES_TO_LINK ${cotas-dev}
+    LIBRARIES_TO_LINK 
+      ${libcotas-dev}
+      ${libinternet}
+      ${libmobility}
+      ${libenergy}
+      ${libapplications}
+      ${libwifi}
+      ${libcsma}
+      ${libcsma-layout}
+      ${libpoint-to-point}
+      ${libpoint-to-point-layout}
   )
 endforeach()

@@ -47,10 +47,6 @@ CoTaS::GetTypeId()
                           UintegerValue(0),
                           MakeUintegerAccessor(&CoTaS::m_tos),
                           MakeUintegerChecker<uint8_t>())
-            .AddTraceSource("Rx",
-                            "A packet has been received",
-                            MakeTraceSourceAccessor(&CoTaS::m_rxTrace),
-                            "ns3::Packet::TracedCallback")
             .AddTraceSource("RxWithAddresses",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&CoTaS::m_rxTraceWithAddresses),
@@ -196,7 +192,8 @@ CoTaS::HandleRead(Ptr<Socket> socket)
         double seconds_taken;
 
         socket->GetSockName(localAddress);
-        m_rxTrace(packet);
+        m_rxTraceWithoutAddress(packet);
+        m_rxTrace(packet, from);
         m_rxTraceWithAddresses(packet, from, localAddress);
         
 

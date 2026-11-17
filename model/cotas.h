@@ -135,9 +135,6 @@ class CoTaS : public SinkApplication
     
     httplib::Client m_cli; //!< cliente http (aqui coloca a Uri do jena fuseki)
     
-    /// Callbacks for tracing the packet Rx events
-    TracedCallback<Ptr<const Packet>> m_rxTrace;
-    
     /// Callbacks for tracing the packet Rx events, includes source and destination addresses
     TracedCallback<Ptr<const Packet>, const Address&, const Address&> m_rxTraceWithAddresses;
     

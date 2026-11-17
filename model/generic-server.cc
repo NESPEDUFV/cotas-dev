@@ -52,10 +52,6 @@ GenericServer::GetTypeId()
                           UintegerValue(1),
                           MakeUintegerAccessor(&GenericServer::m_objectType),
                           MakeUintegerChecker<uint32_t>())
-            .AddTraceSource("Rx",
-                            "A packet has been received",
-                            MakeTraceSourceAccessor(&GenericServer::m_rxTrace),
-                            "ns3::Packet::TracedCallback")
             .AddTraceSource("RxWithAddresses",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&GenericServer::m_rxTraceWithAddresses),
@@ -185,7 +181,8 @@ GenericServer::HandleRead(Ptr<Socket> socket)
     {
         Address localAddress;
         socket->GetSockName(localAddress);
-        m_rxTrace(packet);
+        m_rxTraceWithoutAddress(packet);
+        m_rxTrace(packet, from);
         m_rxTraceWithAddresses(packet, from, localAddress);
 
         // trata no ipv4

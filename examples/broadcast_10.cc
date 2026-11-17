@@ -8,6 +8,7 @@
 #include "ns3/csma-module.h"
 #include "ns3/random-walk-2d-mobility-model.h"
 #include "ns3/flow-monitor-module.h"
+#include "ns3/cotas-dev-module.h"
 
 using namespace ns3;
 

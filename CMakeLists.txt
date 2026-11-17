@@ -39,6 +39,11 @@ build_lib(
     ${COAP_LIB}
     ${libmobility}
     ${libenergy}
-    ${applications}
+    ${libapplications}
+    ${libwifi}
+    ${libcsma}
+    ${libcsma-layout}
+    ${libpoint-to-point}
+    ${libpoint-to-point-layout}
   TEST_SOURCES
 )

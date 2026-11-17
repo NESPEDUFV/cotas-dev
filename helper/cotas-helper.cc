@@ -36,7 +36,7 @@ CoTaSHelper::CoTaSHelper(const Address& address)
 }
 
 GenericServerHelper::GenericServerHelper()
-    : ApplicationHelper(CoTaS::GetTypeId())
+    : ApplicationHelper(GenericServer::GetTypeId())
 {
 }
 
