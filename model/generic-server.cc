@@ -266,7 +266,7 @@ GenericServer::RandomData()
 void 
 GenericServer::SetDataMessage(){
 
-    std::ifstream fm("all_data/messages2.json");
+    std::ifstream fm("src/cotas-dev/all_data/messages2.json");
 
     if (fm.is_open())
     {

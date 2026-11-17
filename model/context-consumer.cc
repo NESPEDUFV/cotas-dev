@@ -97,7 +97,7 @@ ContextConsumer::ContextConsumer()
       m_recived_messages{0},
       m_send_messages{0}
 {
-    std::ifstream fm("all_data/messages3.json");
+    std::ifstream fm("src/cotas-dev/all_data/messages3.json");
 
     if (fm.is_open())
     {
