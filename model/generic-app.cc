@@ -51,19 +51,16 @@ GenericApplication::GetTypeId()
 
 GenericApplication::GenericApplication()
     : SinkApplication(DEFAULT_PORT),
-      m_socket{nullptr},
-      m_socket6{nullptr},
       m_recived_messages{0},
       m_send_messages{0}
 {
     NS_LOG_FUNCTION(this);
+    m_protocolTid = TypeId::LookupByName("ns3::UdpSocketFactory");
 }
 
 GenericApplication::~GenericApplication()
 {
     NS_LOG_FUNCTION(this);
-    m_socket = nullptr;
-    m_socket6 = nullptr;
 }
 
 void
@@ -71,42 +68,33 @@ GenericApplication::DoStartApplication()
 {
     NS_LOG_FUNCTION(this);
 
-    if (!m_socket)
+    auto local = m_local;
+    if (local.IsInvalid())
     {
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
-        auto local = m_local;
-        if (local.IsInvalid())
-        {
-            local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
-        }
-        if (m_socket->Bind(local) == -1)
-        {
-            NS_FATAL_ERROR("Failed to bind socket");
-        }
-        if (addressUtils::IsMulticast(m_local))
-        {
-            Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
-            if (udpSocket)
-            {
-                // equivalent to setsockopt (MCAST_JOIN_GROUP)
-                udpSocket->MulticastJoinGroup(0, m_local);
-            }
-            else
-            {
-                NS_FATAL_ERROR("Error: Failed to join multicast group");
-            }
-        }
-        m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
-        m_socket->SetRecvCallback(MakeCallback(&GenericApplication::HandleRead, this));
+        local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
     }
-
-    if (m_local.IsInvalid() && !m_socket6)
+    if (m_socket->Bind(local) == -1)
     {
-        // local address is not specified, so create another socket to also listen to all IPv6
-        // addresses
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket6 = Socket::CreateSocket(GetNode(), tid);
+        NS_FATAL_ERROR("Failed to bind socket");
+    }
+    if (addressUtils::IsMulticast(m_local))
+    {
+        Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
+        if (udpSocket)
+        {
+            // equivalent to setsockopt (MCAST_JOIN_GROUP)
+            udpSocket->MulticastJoinGroup(0, m_local);
+        }
+        else
+        {
+            NS_FATAL_ERROR("Error: Failed to join multicast group");
+        }
+    }
+    m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
+    m_socket->SetRecvCallback(MakeCallback(&GenericApplication::HandleRead, this));
+
+    if (m_local.IsInvalid())
+    {
         auto local = Inet6SocketAddress(Ipv6Address::GetAny(), m_port);
         if (m_socket6->Bind(local) == -1)
         {

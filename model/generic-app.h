@@ -58,8 +58,6 @@ class GenericApplication : public SinkApplication
     void HandleRead(Ptr<Socket> socket);
 
     uint8_t m_tos;         //!< The packets Type of Service
-    Ptr<Socket> m_socket;  //!< Socket
-    Ptr<Socket> m_socket6; //!< IPv6 Socket (used if only port is specified)
 
     /// Callbacks for tracing the packet Rx events, includes source and destination addresses
     TracedCallback<Ptr<const Packet>, const Address&, const Address&> m_rxTraceWithAddresses;

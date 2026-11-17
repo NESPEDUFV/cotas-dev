@@ -72,8 +72,6 @@ class BroadcastProvider : public SinkApplication
     nlohmann::json m_updateData;
 
     uint8_t m_tos;         //!< The packets Type of Service
-    Ptr<Socket> m_socket;  //!< Socket
-    Ptr<Socket> m_socket6; //!< IPv6 Socket (used if only port is specified)
 
     /// Callbacks for tracing the packet Rx events, includes source and destination addresses
     TracedCallback<Ptr<const Packet>, const Address&, const Address&> m_rxTraceWithAddresses;

@@ -129,9 +129,6 @@ class CoTaS : public SinkApplication
     std::unordered_map<std::string, HandlersFunctions> m_handlerDict;
     
     uint8_t m_tos;         //!< The packets Type of Service
-    Ptr<Socket> m_socket;  //!< Socket
-    Ptr<Socket> m_socket6; //!< IPv6 Socket (used if only port is specified)
-
     
     httplib::Client m_cli; //!< cliente http (aqui coloca a Uri do jena fuseki)
     

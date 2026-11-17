@@ -20,6 +20,7 @@
 #include "ns3/udp-socket.h"
 #include "ns3/uinteger.h"
 #include "ns3/timestamp-tag.h"
+#include "ns3/udp-socket-factory.h"
 
 #include <fstream>
 #include <iostream>
@@ -56,20 +57,17 @@ CoTaS::GetTypeId()
 
 CoTaS::CoTaS()
     : SinkApplication(DEFAULT_PORT),
-      m_socket{nullptr},
-      m_socket6{nullptr},
       m_cli{"localhost", 3030},
       m_recived_messages{0},
       m_send_messages{0}
 {
     NS_LOG_FUNCTION(this);
+    m_protocolTid = TypeId::LookupByName("ns3::UdpSocketFactory");
 }
 
 CoTaS::~CoTaS()
 {
     NS_LOG_FUNCTION(this);
-    m_socket = nullptr;
-    m_socket6 = nullptr;
     m_cli.stop();
 }
 
@@ -96,42 +94,33 @@ CoTaS::DoStartApplication()
     StartHandlerDict();
 
     // coisas do ns3
-    if (!m_socket)
+    auto local = m_local;
+    if (local.IsInvalid())
     {
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
-        auto local = m_local;
-        if (local.IsInvalid())
-        {
-            local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
-        }
-        if (m_socket->Bind(local) == -1)
-        {
-            NS_FATAL_ERROR("Failed to bind socket");
-        }
-        if (addressUtils::IsMulticast(m_local))
-        {
-            Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
-            if (udpSocket)
-            {
-                // equivalent to setsockopt (MCAST_JOIN_GROUP)
-                udpSocket->MulticastJoinGroup(0, m_local);
-            }
-            else
-            {
-                NS_FATAL_ERROR("Error: Failed to join multicast group");
-            }
-        }
-        m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
-        m_socket->SetRecvCallback(MakeCallback(&CoTaS::HandleRead, this));
+        local = InetSocketAddress(Ipv4Address::GetAny(), m_port);
     }
-
-    if (m_local.IsInvalid() && !m_socket6)
+    if (m_socket->Bind(local) == -1)
     {
-        // local address is not specified, so create another socket to also listen to all IPv6
-        // addresses
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket6 = Socket::CreateSocket(GetNode(), tid);
+        NS_FATAL_ERROR("Failed to bind socket");
+    }
+    if (addressUtils::IsMulticast(m_local))
+    {
+        Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket>(m_socket);
+        if (udpSocket)
+        {
+            // equivalent to setsockopt (MCAST_JOIN_GROUP)
+            udpSocket->MulticastJoinGroup(0, m_local);
+        }
+        else
+        {
+            NS_FATAL_ERROR("Error: Failed to join multicast group");
+        }
+    }
+    m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
+    m_socket->SetRecvCallback(MakeCallback(&CoTaS::HandleRead, this));
+
+    if (m_local.IsInvalid())
+    {
         auto local = Inet6SocketAddress(Ipv6Address::GetAny(), m_port);
         if (m_socket6->Bind(local) == -1)
         {
@@ -485,7 +474,7 @@ CoTaS::SetupDatabase(){
 
 std::string 
 CoTaS::ReadFile(std::string filename){
-    filename = "all_data/data_ttl/"+filename;
+    filename = "src/cotas-dev/all_data/data_ttl/"+filename;
     std::ifstream arquivo(filename);
     if (!arquivo.is_open()) {
         NS_LOG_INFO("[CoTaS] Erro: Nao foi possivel abrir o arquivo: " << filename);

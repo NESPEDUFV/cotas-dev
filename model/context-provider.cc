@@ -43,32 +43,31 @@ ContextProvider::GetTypeId()
                           TimeValue(Seconds(1)),
                           MakeTimeAccessor(&ContextProvider::m_interval),
                           MakeTimeChecker())
-            .AddAttribute(
-                "RemoteAddress",
-                "The destination Address of the outbound packets",
-                AddressValue(),
-                MakeAddressAccessor(
-                    (void (ContextProvider::*)(
-                        const Address&))&ContextProvider::SetRemote, // this is needed to indicate
-                                                                     // which version of the
-                                                                     // function overload to use
-                    &ContextProvider::GetRemote),
-                MakeAddressChecker(),
-                TypeId::SupportLevel::DEPRECATED,
-                "Replaced by Remote in ns-3.44.")
-            .AddAttribute(
-                "RemotePort",
-                "The destination port of the outbound packets",
-                UintegerValue(ContextProvider::DEFAULT_PORT),
-                MakeUintegerAccessor(&ContextProvider::SetPort, &ContextProvider::GetPort),
-                MakeUintegerChecker<uint16_t>(),
-                TypeId::SupportLevel::DEPRECATED,
-                "Replaced by Remote in ns-3.44.")
             .AddAttribute("ObjectType",
                           "Which object the node refers to",
                           UintegerValue(1),
                           MakeUintegerAccessor(&ContextProvider::m_objectType),
                           MakeUintegerChecker<uint32_t>())
+            // NS_DEPRECATED_3_44
+            .AddAttribute(
+                "RemoteAddress",
+                "The destination Address of the outbound packets",
+                AddressValue(),
+                MakeAddressAccessor(
+                    // this is needed to indicate which version of the function overload to use
+                    static_cast<void (ContextProvider::*)(const Address&)>(&ContextProvider::SetRemote),
+                    &ContextProvider::GetRemote),
+                MakeAddressChecker(),
+                TypeId::SupportLevel::DEPRECATED,
+                "Replaced by Remote in ns-3.44.")
+            // NS_DEPRECATED_3_44
+            .AddAttribute("RemotePort",
+                          "The destination port of the outbound packets",
+                          UintegerValue(ContextProvider::DEFAULT_PORT),
+                          MakeUintegerAccessor(&ContextProvider::SetPort, &ContextProvider::GetPort),
+                          MakeUintegerChecker<uint16_t>(),
+                          TypeId::SupportLevel::DEPRECATED,
+                          "Replaced by Remote in ns-3.44.")
             .AddTraceSource("Rx",
                             "A packet has been received",
                             MakeTraceSourceAccessor(&ContextProvider::m_rxTrace),
@@ -87,8 +86,6 @@ ContextProvider::GetTypeId()
 ContextProvider::ContextProvider()
     : SourceApplication(false),
       m_sent{0},
-      m_socket{nullptr},
-      m_peerPort{},
       m_sendEvent{},
       m_objectId{0},
       m_recived_messages{0},
@@ -106,13 +103,13 @@ ContextProvider::ContextProvider()
     }
 
     NS_LOG_FUNCTION(this);
+    
+    m_protocolTid = TypeId::LookupByName("ns3::UdpSocketFactory");
 }
 
 ContextProvider::~ContextProvider()
 {
     NS_LOG_FUNCTION(this);
-    m_socket = nullptr;
-
     coap_cleanup();
 }
 
@@ -182,59 +179,16 @@ void
 ContextProvider::DoStartApplication()
 {
     NS_LOG_INFO("[S.O.Cli] Inicia cliente do objeto inteligente");
+
     NS_LOG_FUNCTION(this);
+    m_socket->SetRecvCallback(MakeCallback(&ContextProvider::HandleRead, this));
+    m_socket->SetAllowBroadcast(true);
+    ScheduleTransmit(Time(0));
 
-    if (!m_socket)
-    {
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
-        NS_ABORT_MSG_IF(m_peer.IsInvalid(), "Remote address not properly set");
-        if (!m_local.IsInvalid())
-        {
-            NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) &&
-                             InetSocketAddress::IsMatchingType(m_local)) ||
-                                (InetSocketAddress::IsMatchingType(m_peer) &&
-                                 Inet6SocketAddress::IsMatchingType(m_local)),
-                            "Incompatible peer and local address IP version");
-            if (m_socket->Bind(m_local) == -1)
-            {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
-        }
-        else
-        {
-            if (InetSocketAddress::IsMatchingType(m_peer))
-            {
-                if (m_socket->Bind() == -1)
-                {
-                    NS_FATAL_ERROR("Failed to bind socket");
-                }
-            }
-            else if (Inet6SocketAddress::IsMatchingType(m_peer))
-            {
-                if (m_socket->Bind6() == -1)
-                {
-                    NS_FATAL_ERROR("Failed to bind socket");
-                }
-            }
-            else
-            {
-                NS_ASSERT_MSG(false, "Incompatible address type: " << m_peer);
-            }
-        }
-        m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
-        m_socket->Connect(m_peer);
-        m_socket->SetRecvCallback(MakeCallback(&ContextProvider::HandleRead, this));
-        m_socket->SetAllowBroadcast(true);
+    // set the messages that the object will send
+    SetDataMessage();
 
-        // set the messages that the object will send
-        SetDataMessage();
-
-        coap_startup();
-
-    }
-
-    ScheduleTransmit(Seconds(0.));
+    coap_startup();
 }
 
 void
@@ -244,13 +198,6 @@ ContextProvider::CancelEvents()
 
     NS_LOG_INFO("Durante a simulação chegou " << m_recived_messages << " no objeto " << m_objectType);
     NS_LOG_INFO("Durante a simulação foram enviadas " << m_send_messages << " do objeto " << m_objectType);
-
-    if (m_socket)
-    {
-        m_socket->Close();
-        m_socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
-        m_socket = nullptr;
-    }
 
     Simulator::Cancel(m_sendEvent);
 }

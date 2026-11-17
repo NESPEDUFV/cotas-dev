@@ -88,7 +88,6 @@ ContextConsumer::GetTypeId()
 ContextConsumer::ContextConsumer()
     : SourceApplication(false),
       m_sent{0},
-      m_socket{nullptr},
       m_peerPort{},
       m_sendEvent{},
       m_state{Searching},
@@ -109,6 +108,7 @@ ContextConsumer::ContextConsumer()
     }
 
     NS_LOG_FUNCTION(this);
+    m_protocolTid = TypeId::LookupByName("ns3::UdpSocketFactory");
 }
 
 ContextConsumer::~ContextConsumer()
@@ -193,51 +193,11 @@ ContextConsumer::DoStartApplication()
 
     coap_startup();
 
-    if (!m_socket)
-    {
-        auto tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-        m_socket = Socket::CreateSocket(GetNode(), tid);
-        NS_ABORT_MSG_IF(m_peer.IsInvalid(), "Remote address not properly set");
-        if (!m_local.IsInvalid())
-        {
-            NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) &&
-                             InetSocketAddress::IsMatchingType(m_local)) ||
-                                (InetSocketAddress::IsMatchingType(m_peer) &&
-                                 Inet6SocketAddress::IsMatchingType(m_local)),
-                            "Incompatible peer and local address IP version");
-            if (m_socket->Bind(m_local) == -1)
-            {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
-        }
-        else
-        {
-            if (InetSocketAddress::IsMatchingType(m_peer))
-            {
-                if (m_socket->Bind() == -1)
-                {
-                    NS_FATAL_ERROR("Failed to bind socket");
-                }
-            }
-            else if (Inet6SocketAddress::IsMatchingType(m_peer))
-            {
-                if (m_socket->Bind6() == -1)
-                {
-                    NS_FATAL_ERROR("Failed to bind socket");
-                }
-            }
-            else
-            {
-                NS_ASSERT_MSG(false, "Incompatible address type: " << m_peer);
-            }
-        }
-        m_socket->SetIpTos(m_tos); // Affects only IPv4 sockets.
-        m_socket->Connect(m_peer);
-        m_socket->SetRecvCallback(MakeCallback(&ContextConsumer::HandleRead, this));
-        m_socket->SetAllowBroadcast(true);
-    }
+    NS_LOG_FUNCTION(this);
+    m_socket->SetRecvCallback(MakeCallback(&ContextConsumer::HandleRead, this));
+    m_socket->SetAllowBroadcast(true);
+    ScheduleTransmit(Time(0));
 
-    ScheduleTransmit(Seconds(0.));
 }
 
 void
@@ -247,13 +207,6 @@ ContextConsumer::CancelEvents()
 
     NS_LOG_INFO("Durante a simulação chegou " << m_recived_messages << " na aplicação " << m_applicationType);
     NS_LOG_INFO("Durante a simulação foram enviadas " << m_send_messages << " da aplicação " << m_applicationType);
-
-    if (m_socket)
-    {
-        m_socket->Close();
-        m_socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
-        m_socket = nullptr;
-    }
 
     Simulator::Cancel(m_sendEvent);
 }
